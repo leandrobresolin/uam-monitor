@@ -10,18 +10,18 @@ services:
     # tty: true
     volumes:
       - .:/app
-    ports: 
+    ports:
       - 8000:8000
     depends_on:
       - db_monitor
     networks:
       - uatm
-    
+
   db_monitor:
     container_name: db_monitor
     image: postgis/postgis:16-3.5
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     restart: always
     ports:
       - 5432:5432
@@ -34,7 +34,6 @@ services:
     networks:
       - uatm
 
-      
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4
@@ -45,11 +44,13 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=admin123
     depends_on:
       - db_monitor
+    networks:
+      - uatm
 
-# volumes:
-#   pg-data:
+volumes:
+  pgdata:
+
 
 networks:
   uatm:
     external: true
-
