@@ -1,0 +1,55 @@
+services:
+  web_monitor:
+    build: .
+    #command: bash -c "pip3 install -r requirements.txt"
+    #command: bash -c "python3 -m django --version"
+    #command: bash -c "django-admin startproject monitor ."
+    command: bash -c "pip3 install -r requirements.txt && python3 manage.py runserver 0.0.0.0:8000"
+    container_name: web_monitor
+    # stdin_open: true
+    # tty: true
+    volumes:
+      - .:/app
+    ports: 
+      - 8000:8000
+    depends_on:
+      - db_monitor
+    networks:
+      - uatm
+    
+  db_monitor:
+    container_name: db_monitor
+    image: postgis/postgis:16-3.5
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      # LC_COLLATE: pt_BR:UTF-8
+      # LC_CTYPE: pt_BR:UTF-8
+    networks:
+      - uatm
+
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    ports:
+      - 5050:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@example.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    depends_on:
+      - db_monitor
+
+# volumes:
+#   pg-data:
+
+networks:
+  uatm:
+    external: true
+
