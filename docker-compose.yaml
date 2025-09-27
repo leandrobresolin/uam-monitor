@@ -15,7 +15,7 @@ services:
     depends_on:
       - db_monitor
     networks:
-      - uatm
+      - uam
 
   db_monitor:
     container_name: db_monitor
@@ -32,7 +32,7 @@ services:
       # LC_COLLATE: pt_BR:UTF-8
       # LC_CTYPE: pt_BR:UTF-8
     networks:
-      - uatm
+      - uam
 
   pgadmin:
     image: dpage/pgadmin4
@@ -45,12 +45,12 @@ services:
     depends_on:
       - db_monitor
     networks:
-      - uatm
+      - uam
 
 volumes:
   pgdata:
 
 
 networks:
-  uatm:
+  uam:
     external: true
