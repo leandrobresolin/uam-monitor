@@ -2,10 +2,12 @@ annotated-types==0.7.0
 asgiref==3.9.1
 black==25.1.0
 click==8.2.1
+-e git+ssh://git@github.com/leandrobresolin/uam-monitor.git@9c90e22dda52f1719434b5a74f92c0fd3cf6cd04#egg=common_tools&subdirectory=common_tools
 Django==5.2.6
 django-extensions==4.1
 django-filter==25.1
 django-ninja==1.4.3
+djangorestframework==3.16.1
 flake8==7.3.0
 mccabe==0.7.0
 mypy_extensions==1.1.0
@@ -17,6 +19,8 @@ pycodestyle==2.14.0
 pydantic==2.11.9
 pydantic_core==2.33.2
 pyflakes==3.4.0
+setuptools==80.9.0
 sqlparse==0.5.3
 typing-inspection==0.4.1
 typing_extensions==4.15.0
+wheel==0.45.1
