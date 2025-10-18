@@ -1,8 +1,0 @@
-pyproject.toml
-setup.py
-common_tools.egg-info/PKG-INFO
-common_tools.egg-info/SOURCES.txt
-common_tools.egg-info/dependency_links.txt
-common_tools.egg-info/requires.txt
-common_tools.egg-info/top_level.txt
-schemas/__init__.py
