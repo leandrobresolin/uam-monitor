@@ -2,7 +2,6 @@ annotated-types==0.7.0
 asgiref==3.9.1
 black==25.1.0
 click==8.2.1
--e git+ssh://git@github.com/leandrobresolin/uam-monitor.git@9c90e22dda52f1719434b5a74f92c0fd3cf6cd04#egg=common_tools&subdirectory=common_tools
 Django==5.2.6
 django-extensions==4.1
 django-filter==25.1
