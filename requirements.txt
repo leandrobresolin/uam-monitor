@@ -2,6 +2,8 @@ annotated-types==0.7.0
 asgiref==3.9.1
 black==25.1.0
 click==8.2.1
+# Editable install with no version control (common_tools==0.1.0)
+-e /home/leandro/MBA/TCC/common_tools
 Django==5.2.6
 django-extensions==4.1
 django-filter==25.1
