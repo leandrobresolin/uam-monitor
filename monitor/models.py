@@ -45,11 +45,11 @@ class AircraftData(models.Model):
     aircraft = models.ForeignKey(
         Aircraft, on_delete=models.CASCADE, related_name="data_records"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
     altitude = models.FloatField()
     speed = models.FloatField()
-    fuel_level = models.FloatField()
+    energy_level = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Data for {self.aircraft.registration} at {self.date_recorded}"
