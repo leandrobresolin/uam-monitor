@@ -15,8 +15,8 @@ class AircraftType(models.Model):
         HELICOPTER = "HELICOPTER"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    manufacturer = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    manufacturer = models.CharField(max_length=100, null=True, blank=True)
     energy_type = models.CharField(
         max_length=10, choices=EnergyType, default=EnergyType.ELECTRIC
     )
@@ -34,7 +34,7 @@ class Aircraft(models.Model):
     model = models.ForeignKey(
         AircraftType, on_delete=models.CASCADE, related_name="aircrafts"
     )
-    year = models.PositiveIntegerField()
+    year = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.registration
@@ -45,11 +45,13 @@ class AircraftData(models.Model):
     aircraft = models.ForeignKey(
         Aircraft, on_delete=models.CASCADE, related_name="data_records"
     )
-    altitude = models.FloatField()
-    speed = models.FloatField()
-    energy_level = models.FloatField()
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    altitude = models.FloatField(null=True, blank=True)
+    speed = models.FloatField(null=True, blank=True)
+    energy_level = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Data for {self.aircraft.registration} at {self.date_recorded}"
