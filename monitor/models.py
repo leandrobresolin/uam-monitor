@@ -5,11 +5,11 @@ from django.db import models
 
 class AircraftType(models.Model):
 
-    class EnergyType(models.Model):
+    class EnergyType(models.TextChoices):
         ELECTRIC = "ELECTRIC"
         FUEL = "FUEL"
 
-    class ModelType(models.Model):
+    class ModelType(models.TextChoices):
         EVTOL = "EVTOL"
         DRONE = "DRONE"
         HELICOPTER = "HELICOPTER"
