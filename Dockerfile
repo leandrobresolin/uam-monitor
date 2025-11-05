@@ -27,12 +27,12 @@ RUN apt-get update && apt-get install -y \
     libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy Django code into the container
+COPY . /app
+
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy Django code into the container
-COPY . /app
 
 # Switch to the non-root user
 USER appuser

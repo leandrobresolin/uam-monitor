@@ -16,9 +16,17 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from ninja import NinjaAPI
+
+from monitor.api import aircraft
+
+api = NinjaAPI()
+
+api.add_router("/", aircraft)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('monitor.urls')),  # rota principal
+    path("admin/", admin.site.urls),
+    path("api/", api.urls),
+    path("", include("monitor.urls")),
 ]
