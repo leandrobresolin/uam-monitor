@@ -7,6 +7,7 @@ from .models import (
     FlightInstance,
     Route,
     Tracking,
+    Vertiport,
     Waypoint,
 )
 
@@ -46,14 +47,26 @@ class AircraftDataAdmin(admin.ModelAdmin):
 class WaypointInline(admin.TabularInline):
     model = Waypoint
     extra = 1
-    fields = ("name", "latitude", "longitude", "altitude", "sequence_order")
+    fields = (
+        "name",
+        "latitude",
+        "longitude",
+        "altitude",
+        "sequence_order",
+        "vertiport",
+    )
 
 
-# Route model with inline waypoints
+# Route with departure and arrival vertiports and Inline Waypoint
 @admin.register(Route)
 class RouteAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
+    list_display = ("name", "departure_vertiport", "arrival_vertiport")
+    search_fields = (
+        "name",
+        "departure_vertiport__vertiport_name",
+        "arrival_vertiport__vertiport_name",
+    )
+    list_filter = ("departure_vertiport", "arrival_vertiport")
     inlines = [WaypointInline]
 
 
@@ -72,11 +85,24 @@ class FlightInstanceAdmin(admin.ModelAdmin):
         "aircraft",
         "route",
         "flight_status",
-        "start_time",
-        "end_time",
+        "departure_vertiport",
+        "arrival_vertiport",
+        "scheduled_departure_datetime",
+        "scheduled_arrival_datetime",
     )
-    list_filter = ("flight_status", "aircraft", "route")
-    search_fields = ("aircraft__tail_number", "route__name")
+    list_filter = (
+        "flight_status",
+        "aircraft",
+        "route",
+        "departure_vertiport",
+        "arrival_vertiport",
+    )
+    search_fields = (
+        "aircraft__tail_number",
+        "route__name",
+        "departure_vertiport__vertiport_name",
+        "arrival_vertiport__vertiport_name",
+    )
     inlines = [TrackingInline]
 
 
@@ -97,7 +123,7 @@ class TrackingAdmin(admin.ModelAdmin):
     search_fields = ("flight_instance__aircraft__tail_number",)
 
 
-# Waypoint (registered separately if needed)
+# Waypoint (registered separately)
 @admin.register(Waypoint)
 class WaypointAdmin(admin.ModelAdmin):
     list_display = (
@@ -107,6 +133,22 @@ class WaypointAdmin(admin.ModelAdmin):
         "longitude",
         "altitude",
         "sequence_order",
+        "vertiport",
     )
-    list_filter = ("route",)
-    search_fields = ("name", "route__name")
+    list_filter = ("route", "vertiport")
+    search_fields = ("name", "route__name", "vertiport__vertiport_name")
+
+
+# Vertiport
+@admin.register(Vertiport)
+class VertiportAdmin(admin.ModelAdmin):
+    list_display = (
+        "vertiport_code",
+        "vertiport_name",
+        "latitude",
+        "longitude",
+        "altitude",
+        "created_at",
+    )
+    search_fields = ("vertiport_code", "vertiport_name")
+    list_filter = ("vertiport_code",)
