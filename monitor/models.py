@@ -39,7 +39,7 @@ class AircraftType(models.Model):
 class Aircraft(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tail_number = models.CharField(max_length=20, unique=True)
-    model = models.ForeignKey(
+    aircraft_type = models.ForeignKey(
         AircraftType, on_delete=models.CASCADE, related_name="aircraft_type_aircrafts"
     )
     year = models.PositiveIntegerField(null=True, blank=True)
@@ -68,20 +68,6 @@ class AircraftData(models.Model):
 class Route(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    departure_vertiport = models.ForeignKey(
-        "Vertiport",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="departure_vertiport_routes",
-    )
-    arrival_vertiport = models.ForeignKey(
-        "Vertiport",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="arrival_vertiport_routes",
-    )
 
     def __str__(self):
         return self.name

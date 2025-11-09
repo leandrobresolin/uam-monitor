@@ -23,9 +23,13 @@ class AircraftTypeAdmin(admin.ModelAdmin):
 # Aircraft
 @admin.register(Aircraft)
 class AircraftAdmin(admin.ModelAdmin):
-    list_display = ("tail_number", "model", "year")
-    search_fields = ("tail_number", "model__name", "model__manufacturer")
-    list_filter = ("model",)
+    list_display = ("tail_number", "aircraft_type", "year")
+    search_fields = (
+        "tail_number",
+        "aircraft_type__name",
+        "aircraft_type__manufacturer",
+    )
+    list_filter = ("aircraft_type",)
 
 
 # AircraftData
@@ -60,13 +64,13 @@ class WaypointInline(admin.TabularInline):
 # Route with departure and arrival vertiports and Inline Waypoint
 @admin.register(Route)
 class RouteAdmin(admin.ModelAdmin):
-    list_display = ("name", "departure_vertiport", "arrival_vertiport")
+    list_display = ("id", "name")
     search_fields = (
         "name",
         "departure_vertiport__vertiport_name",
         "arrival_vertiport__vertiport_name",
     )
-    list_filter = ("departure_vertiport", "arrival_vertiport")
+    list_filter = ("id", "name")
     inlines = [WaypointInline]
 
 
