@@ -5,7 +5,7 @@ from monitor.services.aircraft_type import AircraftTypeService
 
 
 class AircraftService:
-    def get_all_aircrafts(self) -> AircraftSchemaList:
+    def get_aircrafts(self) -> AircraftSchemaList:
         aircraft_type_service = AircraftTypeService()
 
         aircraft_list = Aircraft.objects.all()

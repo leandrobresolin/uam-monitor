@@ -20,7 +20,7 @@ aircraft_type = Router(tags=["Aircraft Type"])
 )
 def list_aircrafts(request):
     service = AircraftService()
-    aircrafts = service.get_all_aircrafts()
+    aircrafts = service.get_aircrafts()
 
     if not aircrafts.root:
         return HTTPStatus.NOT_FOUND, {"detail": "No Aircrafts found."}
