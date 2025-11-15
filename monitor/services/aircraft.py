@@ -57,23 +57,20 @@ class AircraftService:
         except ObjectDoesNotExist:
             raise ValueError("Aircraft type not found. Unable to create aircraft.")
 
-        aircraft = Aircraft.objects.create(
-            tail_number=payload.tail_number,
-            aircraft_type_id=payload.aircraft_type,
-            year=payload.year,
-        )
+        try:
+            aircraft = Aircraft.objects.create(
+                tail_number=payload.tail_number,
+                aircraft_type_id=payload.aircraft_type,
+                year=payload.year,
+            )
+        except Exception as e:
+            raise ValueError(f"Failed to create aircraft: {e}")
 
-        return AircraftSchema(
-            id=aircraft.id,
-            tail_number=aircraft.tail_number,
-            aircraft_type=aircraft.aircraft_type.id,
-            year=aircraft.year,
-        )
+        return AircraftSchema.model_validate(aircraft)
 
     def update_aircraft(
         self, aircraft_id: UUID, payload: UpdateAircraftSchema
     ) -> AircraftSchema:
-        from monitor.models import Aircraft, AircraftType
 
         try:
             aircraft = Aircraft.objects.get(id=aircraft_id)
@@ -97,12 +94,7 @@ class AircraftService:
 
         aircraft.save()
 
-        return AircraftSchema(
-            id=aircraft.id,
-            tail_number=aircraft.tail_number,
-            aircraft_type=aircraft.aircraft_type.id,
-            year=aircraft.year,
-        )
+        return AircraftSchema.model_validate(aircraft)
 
     def delete_aircraft(self, aircraft_id: UUID) -> None:
         try:

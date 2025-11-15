@@ -19,11 +19,13 @@ from django.contrib import admin
 from django.urls import include, path
 from ninja import NinjaAPI
 
-from monitor.api import aircraft
+from monitor.apis.aircraft import aircraft
+from monitor.apis.aircraft_type import aircraft_type
 
 api = NinjaAPI()
 
 api.add_router("/", aircraft)
+api.add_router("/", aircraft_type)
 
 urlpatterns = [
     path("admin/", admin.site.urls),

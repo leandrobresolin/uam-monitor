@@ -10,12 +10,12 @@ from common_tools.schemas.aircraft import (
     SubmitAircraftSchema,
     UpdateAircraftSchema,
 )
-from monitor.services.aircrafts import AircraftService
+from monitor.services.aircraft import AircraftService
 
 aircraft = Router(tags=["Aircraft"])
-aircraft_type = Router(tags=["Aircraft Type"])
 
 
+# AIRCRAFTS
 @aircraft.get(
     path="/aircrafts",
     response={
