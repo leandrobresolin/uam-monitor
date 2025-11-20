@@ -44,13 +44,11 @@ class AircraftTypeService:
     def create_aircraft_type(
         self, payload: SubmitAircraftTypeSchema
     ) -> AircraftTypeSchema:
+
+        data = payload.model_dump()
+
         try:
-            aircraft_type = AircraftType.objects.create(
-                name=payload.name,
-                manufacturer=payload.manufacturer,
-                energy_type=payload.energy_type.value,
-                model_type=payload.model_type.value,
-            )
+            aircraft_type = AircraftType.objects.create(**data)
         except Exception as e:
             raise ValueError(f"Failed to create aircraft_type: {e}")
 
