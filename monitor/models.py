@@ -50,8 +50,10 @@ class Aircraft(models.Model):
 
 class AircraftData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    aircraft = models.ForeignKey(
-        Aircraft, on_delete=models.CASCADE, related_name="aircraft_aircraft_data"
+    flight_instance = models.OneToOneField(
+        "FlightInstance",
+        on_delete=models.CASCADE,
+        related_name="flight_instance_taircraft_data",
     )
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -86,8 +88,8 @@ class Waypoint(models.Model):
         related_name="vertiport_waypoints",
     )
     name = models.CharField(max_length=100, null=True, blank=True)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     altitude = models.FloatField(null=True, blank=True)
     sequence_order = models.PositiveIntegerField()
 
@@ -107,7 +109,7 @@ class Tracking(models.Model):
     active = models.BooleanField(default=True)
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Tracking for {self.flight_instance.aircraft.tail_number} (active: {self.active})"
@@ -117,8 +119,8 @@ class Vertiport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     vertiport_code = models.CharField(max_length=50, unique=False)
     vertiport_name = models.CharField(max_length=100)
-    longitude = models.FloatField(null=True, blank=True)
-    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField()
+    latitude = models.FloatField()
     altitude = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
