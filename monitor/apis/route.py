@@ -3,13 +3,6 @@ from uuid import UUID
 
 from ninja import Query, Router
 
-from common_tools.schemas.aircraft_type import (
-    AircraftTypeFilterSchema,
-    AircraftTypeSchema,
-    AircraftTypeSchemaList,
-    SubmitAircraftTypeSchema,
-    UpdateAircraftTypeSchema,
-)
 from common_tools.schemas.route import (
     RouteFilterSchema,
     RouteSchema,
@@ -17,7 +10,6 @@ from common_tools.schemas.route import (
     SubmitRouteSchema,
     UpdateRouteSchema,
 )
-from monitor.services.aircraft_type import AircraftTypeService
 from monitor.services.route import RouteService
 
 route = Router(tags=["Route"])

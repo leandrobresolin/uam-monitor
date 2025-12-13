@@ -14,9 +14,9 @@ from monitor.models import Route
 
 class RouteService:
     def get_route_by_id(self, id: UUID) -> Route | None:
-        aircraft_type = Route.objects.filter(id=id).first()
+        route = Route.objects.filter(id=id).first()
 
-        return aircraft_type
+        return route
 
     def get_routes(self, filters: RouteFilterSchema) -> RouteSchemaList:
 

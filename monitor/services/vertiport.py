@@ -13,6 +13,11 @@ from monitor.models import Vertiport
 
 
 class VertiportService:
+    def get_vertiport_by_id(self, id: UUID) -> Vertiport | None:
+        vertiport = Vertiport.objects.filter(id=id).first()
+
+        return vertiport
+
     def get_vertiports(self, filters: VertiportFilterSchema) -> VertiportSchemaList:
 
         queryset = Vertiport.objects.all()
