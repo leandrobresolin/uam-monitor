@@ -51,7 +51,7 @@ class AircraftService:
 
         return AircraftSchemaList(root=aircraft_schema_list)
 
-    def create_aircraft(self, payload: SubmitAircraftSchema) -> None:
+    def create_aircraft(self, payload: SubmitAircraftSchema) -> AircraftSchema:
         if not AircraftType.objects.filter(id=payload.aircraft_type).exists():
             raise ValueError("Aircraft type not found. Unable to create aircraft.")
 

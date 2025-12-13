@@ -3,13 +3,6 @@ from uuid import UUID
 
 from ninja import Query, Router
 
-from common_tools.schemas.aircraft_type import (
-    AircraftTypeFilterSchema,
-    AircraftTypeSchema,
-    AircraftTypeSchemaList,
-    SubmitAircraftTypeSchema,
-    UpdateAircraftTypeSchema,
-)
 from common_tools.schemas.vertiport import (
     SubmitVertiportSchema,
     UpdateVertiportSchema,
@@ -17,7 +10,6 @@ from common_tools.schemas.vertiport import (
     VertiportSchema,
     VertiportSchemaList,
 )
-from monitor.services.aircraft_type import AircraftTypeService
 from monitor.services.vertiport import VertiportService
 
 vertiport = Router(tags=["Vertiport"])
@@ -25,7 +17,7 @@ vertiport = Router(tags=["Vertiport"])
 
 # VERTIPORTS
 @vertiport.get(
-    path="/vertiport",
+    path="/vertiports",
     response={
         HTTPStatus.OK: VertiportSchemaList,
         HTTPStatus.BAD_REQUEST: dict,
@@ -44,7 +36,7 @@ def list_vertiports(request, filters: VertiportFilterSchema = Query(...)):
 
 
 @vertiport.post(
-    path="/vertiport",
+    path="/vertiports",
     response={
         HTTPStatus.CREATED: VertiportSchema,
         HTTPStatus.BAD_REQUEST: dict,
@@ -52,7 +44,7 @@ def list_vertiports(request, filters: VertiportFilterSchema = Query(...)):
         HTTPStatus.NOT_FOUND: dict,
     },
 )
-def create_aircraft_type(request, payload: SubmitVertiportSchema):
+def create_vertiport(request, payload: SubmitVertiportSchema):
     service = VertiportService()
 
     try:
@@ -64,7 +56,7 @@ def create_aircraft_type(request, payload: SubmitVertiportSchema):
 
 
 @vertiport.patch(
-    path="/vertiport/{vertiport_id}",
+    path="/vertiports/{vertiport_id}",
     response={
         HTTPStatus.OK: VertiportSchema,
         HTTPStatus.BAD_REQUEST: dict,
@@ -72,7 +64,7 @@ def create_aircraft_type(request, payload: SubmitVertiportSchema):
         HTTPStatus.INTERNAL_SERVER_ERROR: dict,
     },
 )
-def update_aircraft_type(request, vertiport_id: UUID, payload: UpdateVertiportSchema):
+def update_vertiport(request, vertiport_id: UUID, payload: UpdateVertiportSchema):
     service = VertiportService()
     try:
         updated = service.update_vertiport(vertiport_id=vertiport_id, payload=payload)
@@ -83,14 +75,14 @@ def update_aircraft_type(request, vertiport_id: UUID, payload: UpdateVertiportSc
 
 
 @vertiport.delete(
-    path="/vertiport/{vertiport_id}",
+    path="/vertiports/{vertiport_id}",
     response={
         HTTPStatus.OK: dict,
         HTTPStatus.NOT_FOUND: dict,
         HTTPStatus.INTERNAL_SERVER_ERROR: dict,
     },
 )
-def delete_aircraft_type(request, vertiport_id: UUID):
+def delete_vertiport(request, vertiport_id: UUID):
     service = VertiportService()
     try:
         service.delete_vertiport(vertiport_id=vertiport_id)

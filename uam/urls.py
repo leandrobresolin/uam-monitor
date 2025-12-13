@@ -21,6 +21,7 @@ from ninja import NinjaAPI
 
 from monitor.apis.aircraft import aircraft
 from monitor.apis.aircraft_type import aircraft_type
+from monitor.apis.route import route
 from monitor.apis.vertiport import vertiport
 
 api = NinjaAPI()
@@ -28,6 +29,7 @@ api = NinjaAPI()
 api.add_router("/", aircraft)
 api.add_router("/", aircraft_type)
 api.add_router("/", vertiport)
+api.add_router("/", route)
 
 
 urlpatterns = [
