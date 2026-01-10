@@ -1,0 +1,20 @@
+[
+    {
+        "model": "monitor.aircraft",
+        "pk": "6a3f5e4b-9c21-4d18-8f3b-2c5d7e9a1b33",
+        "fields": {
+            "tail_number": "PR-EVT01",
+            "aircraft_type": "f4c8c8a9-5d3b-4a8f-8f3c-2b5a6e2a9b11",
+            "year": 2024
+        }
+    },
+    {
+        "model": "monitor.aircraft",
+        "pk": "b1e2c3d4-5f67-489a-8b9c-0d1e2f3a4b44",
+        "fields": {
+            "tail_number": "PT-H125",
+            "aircraft_type": "9b0c9f32-1e7e-4f3c-9e2a-7d1c4a5b8c22",
+            "year": 2018
+        }
+    }
+]

@@ -1,0 +1,22 @@
+[
+    {
+        "model": "monitor.aircrafttype",
+        "pk": "f4c8c8a9-5d3b-4a8f-8f3c-2b5a6e2a9b11",
+        "fields": {
+            "name": "Eve eVTOL",
+            "manufacturer": "Eve Air Mobility",
+            "energy_type": "ELECTRIC",
+            "model_type": "EVTOL"
+        }
+    },
+    {
+        "model": "monitor.aircrafttype",
+        "pk": "9b0c9f32-1e7e-4f3c-9e2a-7d1c4a5b8c22",
+        "fields": {
+            "name": "Helibras H125",
+            "manufacturer": "Airbus Helicopters",
+            "energy_type": "FUEL",
+            "model_type": "HELICOPTER"
+        }
+    }
+]

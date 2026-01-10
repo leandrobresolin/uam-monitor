@@ -1,0 +1,54 @@
+[
+    {
+        "model": "monitor.waypoint",
+        "pk": "f2a3b4c5-d6e7-48f9-a012-334455667788",
+        "fields": {
+            "route": "d4f1a2b3-c5d6-47e8-9f10-112233445566",
+            "vertiport": "6f7e8d9c-0b1a-4c3d-8e9f-0a1b2c3d4e66",
+            "name": "Dep GRU",
+            "latitude": -23.4356,
+            "longitude": -46.4695,
+            "altitude": 900.0,
+            "sequence_order": 1
+        }
+    },
+    {
+        "model": "monitor.waypoint",
+        "pk": "a4b5c6d7-e8f9-4012-a3b4-445566778899",
+        "fields": {
+            "route": "d4f1a2b3-c5d6-47e8-9f10-112233445566",
+            "vertiport": null,
+            "name": "Cruzeiro Centro",
+            "latitude": -23.545,
+            "longitude": -46.63,
+            "altitude": 1100.0,
+            "sequence_order": 2
+        }
+    },
+    {
+        "model": "monitor.waypoint",
+        "pk": "b5c6d7e8-f9a0-4123-b4c5-5566778899aa",
+        "fields": {
+            "route": "d4f1a2b3-c5d6-47e8-9f10-112233445566",
+            "vertiport": "7a8b9c0d-1e2f-4132-8a9b-0c1d2e3f4b77",
+            "name": "Campo de Marte (sobrevoo)",
+            "latitude": -23.5091,
+            "longitude": -46.6378,
+            "altitude": 1050.0,
+            "sequence_order": 3
+        }
+    },
+    {
+        "model": "monitor.waypoint",
+        "pk": "c6d7e8f9-a0b1-4234-c5d6-66778899aabb",
+        "fields": {
+            "route": "d4f1a2b3-c5d6-47e8-9f10-112233445566",
+            "vertiport": "0a1b2c3d-4e5f-4678-9a0b-1c2d3e4f5a55",
+            "name": "Arr CGH",
+            "latitude": -23.6261,
+            "longitude": -46.6558,
+            "altitude": 900.0,
+            "sequence_order": 4
+        }
+    }
+]

@@ -1,0 +1,16 @@
+[
+    {
+        "model": "monitor.route",
+        "pk": "9d0e1f2a-3b4c-4d5e-8f9a-0b1c2d3e4f99",
+        "fields": {
+            "name": "CGH - GRU via Campo de Marte"
+        }
+    },
+    {
+        "model": "monitor.route",
+        "pk": "d4f1a2b3-c5d6-47e8-9f10-112233445566",
+        "fields": {
+            "name": "GRU - CGH via Campo de Marte"
+        }
+    }
+]
