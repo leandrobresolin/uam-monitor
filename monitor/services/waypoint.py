@@ -38,13 +38,21 @@ class WaypointService:
             vertiport_id = waypoint.vertiport.id if waypoint.vertiport else None
 
             route = route_service.get_route_by_id(route_id)
-            vertiport = vertiport_service.get_vertiport_by_id(vertiport_id)
+            vertiport = (
+                vertiport_service.get_vertiport_by_id(vertiport_id)
+                if vertiport_id
+                else None
+            )
 
             waypoint_schema_list.append(
                 WaypointSchema(
                     id=waypoint.id,
                     route=RouteSchema.model_validate(route),
-                    vertiport=VertiportSchema.model_validate(vertiport),
+                    vertiport=(
+                        VertiportSchema.model_validate(vertiport)
+                        if vertiport is not None
+                        else None
+                    ),
                     name=waypoint.name,
                     latitude=waypoint.latitude,
                     longitude=waypoint.longitude,
