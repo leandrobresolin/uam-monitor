@@ -20,8 +20,11 @@ from django.urls import include, path
 from ninja import NinjaAPI
 
 from monitor.apis.aircraft import aircraft
+from monitor.apis.aircraft_data import aircraft_data
 from monitor.apis.aircraft_type import aircraft_type
+from monitor.apis.flight_instance import flight_instance
 from monitor.apis.route import route
+from monitor.apis.tracking import tracking
 from monitor.apis.vertiport import vertiport
 from monitor.apis.waypoint import waypoint
 
@@ -32,6 +35,9 @@ api.add_router("/", aircraft_type)
 api.add_router("/", vertiport)
 api.add_router("/", route)
 api.add_router("/", waypoint)
+api.add_router("/", flight_instance)
+api.add_router("/", tracking)
+api.add_router("/", aircraft_data)
 
 
 urlpatterns = [

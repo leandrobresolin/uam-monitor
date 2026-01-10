@@ -3,13 +3,6 @@ from uuid import UUID
 
 from ninja import Query, Router
 
-from common_tools.schemas.aircraft import (
-    AircraftFilterSchema,
-    AircraftSchema,
-    AircraftSchemaList,
-    SubmitAircraftSchema,
-    UpdateAircraftSchema,
-)
 from common_tools.schemas.waypoint import (
     SubmitWaypointSchema,
     UpdateWaypointSchema,
