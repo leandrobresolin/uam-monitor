@@ -4,7 +4,8 @@ services:
     #command: bash -c "pip3 install -r requirements.txt"
     #command: bash -c "python3 -m django --version"
     #command: bash -c "django-admin startproject monitor ."
-    command: bash -c "pip3 install -r requirements.txt && ./entrypoint.sh"
+    #command: bash -c "pip3 install -r requirements.txt && python3 manage.py runserver 0.0.0.0:8000"
+    command: ./entrypoint.sh
     container_name: web_monitor
     # stdin_open: true
     # tty: true

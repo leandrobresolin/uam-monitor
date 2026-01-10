@@ -12,7 +12,6 @@ class Command(BaseCommand):
             "aircrafts.json",
             "vertiports.json",
             "routes.json",
-            "routes_return.json",
             "waypoints_cgh_gru.json",
             "waypoints_gru_cgh.json",
         ]

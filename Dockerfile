@@ -34,6 +34,9 @@ COPY . /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Gives permission to run script
+RUN chmod +x /app/entrypoint.sh
+
 # Switch to the non-root user
 USER appuser
 
@@ -41,4 +44,5 @@ USER appuser
 EXPOSE 8000
 
 # Default command: run Django development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["./entrypoint.sh"]
