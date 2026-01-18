@@ -8,7 +8,6 @@ from common_tools.schemas.tracking import (
     TrackingFilterSchema,
     TrackingSchema,
     TrackingSchemaList,
-    UpdateTrackingSchema,
 )
 from monitor.services.tracking import TrackingService
 

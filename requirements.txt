@@ -1,6 +1,9 @@
 annotated-types==0.7.0
 asgiref==3.9.1
+backoff==2.2.1
 black==25.1.0
+certifi==2026.1.4
+charset-normalizer==3.4.4
 click==8.2.1
 -e ./common_tools
 Django==5.2.6
@@ -19,8 +22,11 @@ pycodestyle==2.14.0
 pydantic==2.11.9
 pydantic_core==2.33.2
 pyflakes==3.4.0
+pytz==2025.2
+requests==2.32.5
 setuptools==80.9.0
 sqlparse==0.5.3
 typing-inspection==0.4.1
 typing_extensions==4.15.0
+urllib3==2.6.3
 wheel==0.45.1
