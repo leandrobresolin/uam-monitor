@@ -14,7 +14,8 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      - db_monitor
+      db_monitor:
+        condition: service_healthy
     networks:
       - uam
 
@@ -32,6 +33,11 @@ services:
       - POSTGRES_PASSWORD=postgres
       # LC_COLLATE: pt_BR:UTF-8
       # LC_CTYPE: pt_BR:UTF-8
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - uam
 

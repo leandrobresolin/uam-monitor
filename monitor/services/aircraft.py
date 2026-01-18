@@ -46,6 +46,7 @@ class AircraftService:
                         model_type=aircraft_type.model_type,
                     ),
                     year=aircraft.year,
+                    energy_fuel=aircraft.energy_fuel,
                 )
             )
 

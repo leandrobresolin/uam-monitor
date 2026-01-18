@@ -43,6 +43,7 @@ class Aircraft(models.Model):
         AircraftType, on_delete=models.CASCADE, related_name="aircraft_type_aircrafts"
     )
     year = models.PositiveIntegerField(null=True, blank=True)
+    energy_fuel = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.tail_number
