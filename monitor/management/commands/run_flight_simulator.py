@@ -23,35 +23,36 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("🚁 Flight Simulator started"))
         tracking_service = TrackingService()
 
+        ACTIVATION_WINDOW = timezone.timedelta(seconds=30)  # 30s window
+
         while True:
             try:
                 now = timezone.now()
 
-                # 1) Activate PENDING flights whose departure time has arrived
-                pendings = (
+                # TOTAL PENDINGS
+                total_pendings = FlightInstance.objects.filter(
+                    flight_status=FlightStatusEnum.PENDING.value
+                ).count()
+
+                # 1) TO BE ACTIVATED (30s window)
+                eligible_pendings = (
                     FlightInstance.objects.select_related(
-                        "departure_vertiport",
-                        "arrival_vertiport",
-                        "route",
+                        "departure_vertiport", "arrival_vertiport", "route"
                     )
                     .prefetch_related("route__route_waypoints")
                     .filter(
                         flight_status=FlightStatusEnum.PENDING.value,
                         scheduled_departure_datetime__isnull=False,
                         scheduled_arrival_datetime__isnull=False,
-                        scheduled_departure_datetime__lte=now,
+                        scheduled_departure_datetime__gte=now - ACTIVATION_WINDOW / 2,
+                        scheduled_departure_datetime__lte=now + ACTIVATION_WINDOW / 2,
                     )
                 )
 
-                for fi in pendings:
-                    self._activate_flight(fi, tracking_service)
-
-                # 2) Update ACTIVATED flights
+                # 2) ACTIVATED (Already departed)
                 actives = (
                     FlightInstance.objects.select_related(
-                        "departure_vertiport",
-                        "arrival_vertiport",
-                        "route",
+                        "departure_vertiport", "arrival_vertiport", "route"
                     )
                     .prefetch_related("route__route_waypoints")
                     .filter(
@@ -61,18 +62,26 @@ class Command(BaseCommand):
                     )
                 )
 
+                self.stdout.write(
+                    f"[{now.strftime('%H:%M:%S')}] "
+                    f"TOTAL_PENDING={total_pendings} "
+                    f"TO BE ACTIVATED={eligible_pendings.count()} "
+                    f"ACTIVATED={actives.count()}"
+                )
+
+                # Process "TO BE ACTIVATED" ones
+                for fi in eligible_pendings:
+                    self._activate_flight(fi, tracking_service)
+
+                # Process ACTIVATED
                 for fi in actives:
                     self._update_flight(fi, now, tracking_service)
 
-                self.stdout.write(
-                    f"[{now.isoformat()}] PENDING={pendings.count()} ACTIVATED={actives.count()}"
-                )
-
             except KeyboardInterrupt:
-                self.stdout.write(self.style.WARNING("🛑 Simulator stopped"))
+                self.stdout.write(self.style.WARNING("Simulator stopped"))
                 break
             except Exception as e:
-                self.stdout.write(self.style.ERROR(f"❌ Loop error: {e}"))
+                self.stdout.write(self.style.ERROR(f"Loop error: {e}"))
 
             time.sleep(INTERVAL_SECONDS)
 
@@ -195,7 +204,7 @@ class Command(BaseCommand):
 
         tracking_service.create_or_update_tracking(payload=payload)
         self.stdout.write(
-            f"📡 [{fi.id}] {progress:.0%} energy={energy}% speed={speed}kts"
+            f"📡 [{fi.id}] {progress:.0%} energy={energy} speed={speed}kts"
         )
 
     # -------------------------------------------------------------------------

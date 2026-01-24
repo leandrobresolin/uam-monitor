@@ -79,7 +79,7 @@ class AircraftDataAdmin(admin.ModelAdmin):
         "energy_level",
         "created_at",
     )
-    list_filter = ("flight_instance__aircraft",)
+    list_filter = ("flight_instance__aircraft", "flight_instance__callsign")
     date_hierarchy = "created_at"
     ordering = ("-created_at",)
 
