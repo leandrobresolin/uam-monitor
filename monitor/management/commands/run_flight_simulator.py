@@ -1,183 +1,305 @@
 # monitor/management/commands/run_flight_simulator.py
-import asyncio
-import math
+import time
 from datetime import datetime
-from decimal import Decimal
 from typing import Dict, List, Tuple
 
-from asgiref.sync import sync_to_async
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from monitor.models import FlightInstance, Tracking  # Ajuste imports
+from common_tools.schemas.flight_instance import FlightStatusEnum
+from common_tools.schemas.tracking import SubmitTrackingSchema
+from monitor.models import FlightInstance, Waypoint
+from monitor.services.tracking import TrackingService
+
+INTERVAL_SECONDS = 5
+CRUISE_SPEED_KTS = 80.0
+MIN_ENERGY = 20.0  # Reserve energy on landing
 
 
 class Command(BaseCommand):
-    help = "Simula voos de FlightInstances pendentes"
+    help = "Flight simulator: generates Tracking for PENDING/ACTIVATED FlightInstances"
 
     def handle(self, *args, **options):
-        print("🚁 Flight Simulator iniciado (Ctrl+C para parar)")
-        asyncio.run(self.simulation_loop())
+        self.stdout.write(self.style.SUCCESS("🚁 Flight Simulator started"))
+        tracking_service = TrackingService()
 
-    async def simulation_loop(self):
         while True:
             try:
                 now = timezone.now()
 
-                # 1. Ativa pendentes
-                pendings = await sync_to_async(list)(
-                    FlightInstance.objects.filter(
-                        flight_status="PENDING", scheduled_departure_datetime__lte=now
+                # 1) Activate PENDING flights whose departure time has arrived
+                pendings = (
+                    FlightInstance.objects.select_related(
+                        "departure_vertiport",
+                        "arrival_vertiport",
+                        "route",
                     )
-                    .select_related(
-                        "aircraft", "departure_vertiport", "arrival_vertiport", "route"
+                    .prefetch_related("route__route_waypoints")
+                    .filter(
+                        flight_status=FlightStatusEnum.PENDING.value,
+                        scheduled_departure_datetime__isnull=False,
+                        scheduled_arrival_datetime__isnull=False,
+                        scheduled_departure_datetime__lte=now,
                     )
-                    .prefetch_related("route__waypoints")
                 )
 
                 for fi in pendings:
-                    await self.activate_flight(fi)
+                    self._activate_flight(fi, tracking_service)
 
-                # 2. Atualiza ativas
-                actives = await sync_to_async(list)(
-                    FlightInstance.objects.filter(flight_status="ACTIVATED")
+                # 2) Update ACTIVATED flights
+                actives = (
+                    FlightInstance.objects.select_related(
+                        "departure_vertiport",
+                        "arrival_vertiport",
+                        "route",
+                    )
+                    .prefetch_related("route__route_waypoints")
+                    .filter(
+                        flight_status=FlightStatusEnum.ACTIVATED.value,
+                        scheduled_departure_datetime__isnull=False,
+                        scheduled_arrival_datetime__isnull=False,
+                    )
                 )
 
                 for fi in actives:
-                    await self.update_tracking(fi, now)
+                    self._update_flight(fi, now, tracking_service)
 
-                print(
-                    f"⏱️  {len(pendings)} pendings | {len(actives)} ativas | Próxima: 5s"
+                self.stdout.write(
+                    f"[{now.isoformat()}] PENDING={pendings.count()} ACTIVATED={actives.count()}"
                 )
 
             except KeyboardInterrupt:
-                print("\n🛑 Simulator parado")
+                self.stdout.write(self.style.WARNING("🛑 Simulator stopped"))
                 break
             except Exception as e:
-                print(f"❌ Erro loop: {e}")
+                self.stdout.write(self.style.ERROR(f"❌ Loop error: {e}"))
 
-            await asyncio.sleep(5)
+            time.sleep(INTERVAL_SECONDS)
 
-    @sync_to_async
-    def activate_flight(self, fi: FlightInstance):
-        if fi.flight_status != "PENDING":
+    # -------------------------------------------------------------------------
+    # Flight activation
+    # -------------------------------------------------------------------------
+    def _activate_flight(self, fi: FlightInstance, tracking_service: TrackingService):
+        """Changes PENDING -> ACTIVATED and creates initial tracking at departure vertiport."""
+        dep = fi.departure_vertiport
+        arr = fi.arrival_vertiport
+
+        if not dep or not arr:
+            waypoints = fi.route.route_waypoints.order_by("sequence_order").all()
+            if not waypoints:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"[{fi.id}] route has no waypoints; skipping activation."
+                    )
+                )
+                return
+
+            if not dep:
+                first_wp = waypoints[0]
+                dep = first_wp.vertiport
+                fi.departure_vertiport = dep
+            if not arr:
+                last_wp = waypoints.last()
+                arr = last_wp.vertiport
+                fi.arrival_vertiport = arr
+
+            fi.save(update_fields=["departure_vertiport", "arrival_vertiport"])
+
+        if not dep or not arr:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"[{fi.id}] still missing departure/arrival vertiport; skipping."
+                )
+            )
             return
 
-        fi.flight_status = "ACTIVATED"
+        fi.flight_status = FlightStatusEnum.ACTIVATED.value
         fi.save(update_fields=["flight_status"])
 
-        # Cria tracking inicial
-        tracking, created = Tracking.objects.get_or_create(
-            flight_instance=fi,
-            defaults={
-                "latitude": fi.departure_vertiport.latitude,
-                "longitude": fi.departure_vertiport.longitude,
-                "altitude": fi.departure_vertiport.altitude,
-                "speed": Decimal("0.0"),
-                "energy_level": Decimal("100.0"),
-                "active": True,
-                "started_at": timezone.now(),
-            },
-        )
-        print(f"✅ [{fi.id}] ATIVATED (criado: {created})")
+        dep = fi.departure_vertiport
+        aircraft_max_energy = fi.aircraft.energy_fuel
 
-    async def update_tracking(self, fi: FlightInstance, now: datetime):
-        duration = (
-            fi.scheduled_arrival_datetime - fi.scheduled_departure_datetime
-        ).total_seconds()
-        if duration <= 0:
+        # Round to realistic precision
+        lat = round(float(dep.latitude), 6)
+        lon = round(float(dep.longitude), 6)
+        alt = round(float(dep.altitude), 1)
+
+        payload = SubmitTrackingSchema(
+            flight_instance=fi.id,
+            latitude=lat,
+            longitude=lon,
+            altitude=alt,
+            speed=0.0,
+            energy_level=aircraft_max_energy,
+            active=True,
+            started_at=None,
+            finished_at=None,
+            updated_at=None,
+        )
+
+        tracking_service.create_or_update_tracking(payload=payload)
+        self.stdout.write(self.style.SUCCESS(f"✅ [{fi.id}] ACTIVATED"))
+
+    # -------------------------------------------------------------------------
+    # Flight update during simulation
+    # -------------------------------------------------------------------------
+    def _update_flight(
+        self,
+        fi: FlightInstance,
+        now: datetime,
+        tracking_service: TrackingService,
+    ):
+        aircraft_max_energy = fi.aircraft.energy_fuel
+        dep_time = fi.scheduled_departure_datetime
+        arr_time = fi.scheduled_arrival_datetime
+        total_seconds = (arr_time - dep_time).total_seconds()
+        if total_seconds <= 0:
+            self.stdout.write(
+                self.style.WARNING(f"[{fi.id}] invalid duration; terminating flight.")
+            )
+            self._terminate_flight(fi, now, tracking_service)
             return
 
-        elapsed = (now - fi.scheduled_departure_datetime).total_seconds()
-        progress = min(elapsed / duration, 1.0)
+        elapsed = (now - dep_time).total_seconds()
+        progress = max(0.0, min(elapsed / total_seconds, 1.0))
 
         if progress >= 1.0:
-            await self.finish_flight(fi)
+            self._terminate_flight(fi, now, tracking_service)
             return
 
-        # Build path
-        path = self.build_path(fi)
-        pos = self.interpolate_path(path, progress)
+        path = self._build_path(fi)
+        pos = self._interpolate_path(path, progress)
 
-        # Consumo realista
-        energy = max(15.0, 100.0 * (1 - progress * 0.85))
-        speed = min(80.0, 20.0 + progress * 60.0)  # Acelera gradualmente
+        # Monotonic decreasing energy: always decreases, never increases
+        energy_raw = aircraft_max_energy - (aircraft_max_energy - MIN_ENERGY) * progress
+        energy = round(energy_raw, 2)  # 2 decimal places precision
 
-        # Update tracking
-        tracking = await sync_to_async(Tracking.objects.get)(flight_instance=fi)
-        tracking.latitude = pos["lat"]
-        tracking.longitude = pos["lon"]
-        tracking.altitude = pos["alt"]
-        tracking.speed = Decimal(f"{speed:.1f}")
-        tracking.energy_level = Decimal(f"{energy:.1f}")
-        tracking.updated_at = now
-        tracking.save(
-            update_fields=[
-                "latitude",
-                "longitude",
-                "altitude",
-                "speed",
-                "energy_level",
-                "updated_at",
-            ]
+        # Round all values to realistic sensor precision
+        lat = round(pos["lat"], 6)  # GPS ~1m
+        lon = round(pos["lon"], 6)
+        alt = round(pos["alt"], 1)  # 10cm
+        speed = round(CRUISE_SPEED_KTS, 1)  # 0.1kt
+
+        payload = SubmitTrackingSchema(
+            flight_instance=fi.id,
+            latitude=lat,
+            longitude=lon,
+            altitude=alt,
+            speed=speed,
+            energy_level=energy,
+            active=True,
+            started_at=None,
+            finished_at=None,
+            updated_at=now,
         )
 
-        print(f"📡 [{fi.id}] {progress:.0%} | {energy:.0f}% | {speed:.0f}kts")
+        tracking_service.create_or_update_tracking(payload=payload)
+        self.stdout.write(
+            f"📡 [{fi.id}] {progress:.0%} energy={energy}% speed={speed}kts"
+        )
 
-    @sync_to_async
-    def finish_flight(self, fi: FlightInstance):
-        fi.flight_status = "TERMINATED"
+    # -------------------------------------------------------------------------
+    # Flight termination
+    # -------------------------------------------------------------------------
+    def _terminate_flight(
+        self,
+        fi: FlightInstance,
+        now: datetime,
+        tracking_service: TrackingService,
+    ):
+        """Final tracking at arrival vertiport, sets TERMINATED status."""
+        if fi.arrival_vertiport:
+            arr = fi.arrival_vertiport
+            lat = round(float(arr.latitude), 6)
+            lon = round(float(arr.longitude), 6)
+            alt = round(float(arr.altitude), 1)
+        else:
+            lat = lon = alt = 0.0
+
+        payload = SubmitTrackingSchema(
+            flight_instance=fi.id,
+            latitude=lat,
+            longitude=lon,
+            altitude=alt,
+            speed=0.0,
+            energy_level=MIN_ENERGY,
+            active=False,
+            started_at=None,
+            finished_at=now,
+            updated_at=now,
+        )
+
+        tracking_service.create_or_update_tracking(payload=payload)
+
+        fi.flight_status = FlightStatusEnum.TERMINATED.value
         fi.save(update_fields=["flight_status"])
 
-        tracking = Tracking.objects.get(flight_instance=fi)
-        tracking.active = False
-        tracking.finished_at = timezone.now()
-        tracking.save(update_fields=["active", "finished_at"])
+        self.stdout.write(self.style.SUCCESS(f"🛬 [{fi.id}] TERMINATED"))
 
-        print(f"🛬 [{fi.id}] TERMINATED")
+    # -------------------------------------------------------------------------
+    # Flight path geometry
+    # -------------------------------------------------------------------------
+    def _build_path(self, fi: FlightInstance) -> List[Tuple[float, float, float]]:
+        """Builds flight path: departure → waypoints → arrival."""
+        points: List[Tuple[float, float, float]] = []
 
-    def build_path(self, fi: FlightInstance) -> List[Tuple[float, float, float]]:
-        points = []
+        dep = fi.departure_vertiport
+        arr = fi.arrival_vertiport
+        if not dep or not arr:
+            return [(0.0, 0.0, 1000.0)]
 
-        # Origem
-        points.append(
-            (
-                float(fi.departure_vertiport.latitude),
-                float(fi.departure_vertiport.longitude),
-                float(fi.departure_vertiport.altitude),
-            )
-        )
+        # Departure vertiport
+        points.append((float(dep.latitude), float(dep.longitude), float(dep.altitude)))
 
-        # Waypoints
-        if fi.route and fi.route.waypoints.exists():
-            for wp in fi.route.waypoints.order_by("sequence_order"):
-                points.append(
-                    (float(wp.latitude), float(wp.longitude), float(wp.altitude))
+        # Route waypoints (ordered by sequence_order)
+        if fi.route:
+            waypoints = fi.route.route_waypoints.order_by("sequence_order").all()
+            for wp in waypoints:
+                lat = (
+                    float(wp.latitude)
+                    if wp.latitude is not None
+                    else float(wp.vertiport.latitude)
                 )
+                lon = (
+                    float(wp.longitude)
+                    if wp.longitude is not None
+                    else float(wp.vertiport.longitude)
+                )
+                alt = (
+                    float(wp.altitude)
+                    if wp.altitude is not None
+                    else float(wp.vertiport.altitude)
+                )
+                points.append((lat, lon, alt))
 
-        # Destino
-        points.append(
-            (
-                float(fi.arrival_vertiport.latitude),
-                float(fi.arrival_vertiport.longitude),
-                float(fi.arrival_vertiport.altitude),
-            )
-        )
+        # Arrival vertiport
+        points.append((float(arr.latitude), float(arr.longitude), float(arr.altitude)))
+
+        # Ensure minimum 2 points for interpolation
+        if len(points) == 1:
+            points.append(points[0])
 
         return points
 
-    def interpolate_path(
+    def _interpolate_path(
         self, path: List[Tuple[float, float, float]], progress: float
     ) -> Dict[str, float]:
+        """Linear interpolation across path segments."""
         if len(path) == 1:
-            return {"lat": path[0][0], "lon": path[0][1], "alt": path[0][2]}
+            lat, lon, alt = path[0]
+            return {"lat": lat, "lon": lon, "alt": alt}
 
-        seg_idx = min(int(progress * (len(path) - 1)), len(path) - 2)
-        seg_prog = (progress * (len(path) - 1)) - seg_idx
+        # Map global progress (0-1) to segments
+        seg_count = len(path) - 1
+        seg_pos = progress * seg_count
+        seg_idx = min(int(seg_pos), seg_count - 1)
+        seg_t = seg_pos - seg_idx
 
-        p1, p2 = path[seg_idx], path[seg_idx + 1]
-        return {
-            "lat": p1[0] + (p2[0] - p1[0]) * seg_prog,
-            "lon": p1[1] + (p2[1] - p1[1]) * seg_prog,
-            "alt": p1[2] + (p2[2] - p1[2]) * seg_prog,
-        }
+        lat1, lon1, alt1 = path[seg_idx]
+        lat2, lon2, alt2 = path[seg_idx + 1]
+
+        lat = lat1 + (lat2 - lat1) * seg_t
+        lon = lon1 + (lon2 - lon1) * seg_t
+        alt = alt1 + (alt2 - alt1) * seg_t
+
+        return {"lat": lat, "lon": lon, "alt": alt}

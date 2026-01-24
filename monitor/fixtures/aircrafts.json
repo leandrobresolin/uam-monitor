@@ -6,7 +6,7 @@
             "tail_number": "PR-EVT01",
             "aircraft_type": "f4c8c8a9-5d3b-4a8f-8f3c-2b5a6e2a9b11",
             "year": 2024,
-            "energy_fuel": 300
+            "energy_fuel": 300.0
         }
     },
     {
@@ -16,7 +16,7 @@
             "tail_number": "PT-H125",
             "aircraft_type": "9b0c9f32-1e7e-4f3c-9e2a-7d1c4a5b8c22",
             "year": 2018,
-            "energy_fuel": 900
+            "energy_fuel": 900.0
         }
     }
 ]

@@ -43,7 +43,7 @@ class Aircraft(models.Model):
         AircraftType, on_delete=models.CASCADE, related_name="aircraft_type_aircrafts"
     )
     year = models.PositiveIntegerField(null=True, blank=True)
-    energy_fuel = models.IntegerField(null=True, blank=True)
+    energy_fuel = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.tail_number
@@ -128,6 +128,9 @@ class Vertiport(models.Model):
     altitude = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
+    def __str__(self):
+        return self.vertiport_code
+
 
 class FlightInstance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -172,4 +175,4 @@ class FlightInstance(models.Model):
     scheduled_arrival_datetime = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.aircraft.tail_number} [{self.flight_status}] {self.scheduled_departure_datetime}"
+        return f"{self.callsign} - {self.id})"

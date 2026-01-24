@@ -47,6 +47,7 @@ class TrackingService:
 
         data = payload.model_dump()
 
+        data.pop("flight_instance", None)
         data.pop("started_at", None)
         data.pop("updated_at", None)
 

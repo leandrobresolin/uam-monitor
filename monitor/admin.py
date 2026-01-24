@@ -81,6 +81,7 @@ class AircraftDataAdmin(admin.ModelAdmin):
     )
     list_filter = ("flight_instance__aircraft",)
     date_hierarchy = "created_at"
+    ordering = ("-created_at",)
 
 
 class AircraftDataInline(admin.TabularInline):
@@ -105,8 +106,8 @@ class TrackingInline(admin.StackedInline):
 @admin.register(FlightInstance)
 class FlightInstanceAdmin(admin.ModelAdmin):
     list_display = (
-        "aircraft",
         "callsign",
+        "aircraft",
         "flight_status",
         "route",
         "departure_vertiport",
@@ -117,4 +118,4 @@ class FlightInstanceAdmin(admin.ModelAdmin):
     list_filter = ("flight_status", "route", "departure_vertiport", "arrival_vertiport")
     search_fields = ("callsign", "aircraft__tail_number")
     date_hierarchy = "scheduled_departure_datetime"
-    inlines = [TrackingInline, AircraftDataInline]
+    # inlines = [TrackingInline, AircraftDataInline]
