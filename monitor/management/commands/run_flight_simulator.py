@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from common_tools.schemas.flight_instance import FlightStatusEnum
 from common_tools.schemas.tracking import SubmitTrackingSchema
-from monitor.models import FlightInstance, Waypoint
+from monitor.models import FlightInstance
 from monitor.services.tracking import TrackingService
 
 INTERVAL_SECONDS = 5
