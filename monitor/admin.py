@@ -71,6 +71,7 @@ class TrackingAdmin(admin.ModelAdmin):
 @admin.register(AircraftData)
 class AircraftDataAdmin(admin.ModelAdmin):
     list_display = (
+        "flight_instance__aircraft",
         "flight_instance",
         "latitude",
         "longitude",
