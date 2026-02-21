@@ -12,7 +12,7 @@ aircraft_data = Router(tags=["AircraftData"])
 
 
 @aircraft_data.get(
-    path="/aircraft-data",
+    path="/aircraft_data",
     response={
         HTTPStatus.OK: AircraftDataSchemaList,
         HTTPStatus.BAD_REQUEST: dict,
