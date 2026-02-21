@@ -24,6 +24,8 @@ class AircraftDataService:
             queryset = queryset.filter(id=filters.id)
         if filters.flight_instance is not None:
             queryset = queryset.filter(flight_instance_id=filters.flight_instance)
+        if filters.aircraft is not None:
+            queryset = queryset.filter(flight_instance__aircraft=filters.aircraft)
         if filters.created_at is not None:
             queryset = queryset.filter(created_at__gte=filters.created_at)
         if filters.updated_at is not None:
