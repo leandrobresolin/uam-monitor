@@ -35,10 +35,14 @@ class AircraftDataService:
                 queryset = queryset.filter(
                     flight_instance__aircraft__tail_number=filters.aircraft
                 )
+        if filters.created_from is not None:
+            queryset = queryset.filter(created_at__gte=filters.created_from)
+        if filters.created_to is not None:
+            queryset = queryset.filter(created_at__lte=filters.created_to)
         if filters.created_at is not None:
-            queryset = queryset.filter(created_at__gte=filters.created_at)
+            queryset = queryset.filter(created_at=filters.created_at)
         if filters.updated_at is not None:
-            queryset = queryset.filter(updated_at__gte=filters.updated_at)
+            queryset = queryset.filter(updated_at=filters.updated_at)
 
         queryset = queryset.order_by("created_at")
 
