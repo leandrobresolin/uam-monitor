@@ -2,6 +2,7 @@ from uuid import UUID
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from common_tools.schemas.flight_instance import FlightStatusEnum
 from common_tools.schemas.tracking import (
     SubmitTrackingSchema,
     TrackingFilterSchema,
@@ -55,6 +56,14 @@ class TrackingService:
             flight_instance=fi,
             defaults=data,
         )
+
+        if _created:
+            fi.flight_status = FlightStatusEnum.ACTIVATED
+            fi.save()
+
+        if not payload.active:
+            fi.flight_status = FlightStatusEnum.TERMINATED
+            fi.save()
 
         # Creates history
         AircraftData.objects.create(

@@ -1,9 +1,13 @@
 # monitor/management/commands/run_flight_simulator.py
+import json
 import time
 from datetime import datetime
+from http import HTTPStatus
 from typing import Dict, List, Tuple
 
+import requests
 from django.core.management.base import BaseCommand
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
 from common_tools.schemas.flight_instance import FlightStatusEnum
@@ -14,6 +18,8 @@ from monitor.services.tracking import TrackingService
 INTERVAL_SECONDS = 5
 CRUISE_SPEED_KTS = 80.0
 MIN_ENERGY = 20.0  # Reserve energy on landing
+
+base_url = "http://localhost:8000/api"
 
 
 class Command(BaseCommand):
@@ -122,8 +128,8 @@ class Command(BaseCommand):
             )
             return
 
-        fi.flight_status = FlightStatusEnum.ACTIVATED.value
-        fi.save(update_fields=["flight_status"])
+        # fi.flight_status = FlightStatusEnum.ACTIVATED.value
+        # fi.save(update_fields=["flight_status"])
 
         dep = fi.departure_vertiport
         aircraft_max_energy = fi.aircraft.energy_fuel
@@ -146,8 +152,16 @@ class Command(BaseCommand):
             updated_at=None,
         )
 
-        tracking_service.create_or_update_tracking(payload=payload)
-        self.stdout.write(self.style.SUCCESS(f"✅ [{fi.id}] ACTIVATED"))
+        url = f"{base_url}/tracking"
+        response = requests.post(
+            url,
+            data=json.dumps(payload.model_dump(), cls=DjangoJSONEncoder),
+            headers={"Content-Type": "application/json"},
+        )
+        # tracking_service.create_or_update_tracking(payload=payload)
+
+        if response.status_code == HTTPStatus.CREATED:
+            self.stdout.write(self.style.SUCCESS(f"✅ [{fi.id}] ACTIVATED"))
 
     # -------------------------------------------------------------------------
     # Flight update during simulation
@@ -202,10 +216,19 @@ class Command(BaseCommand):
             updated_at=now,
         )
 
-        tracking_service.create_or_update_tracking(payload=payload)
-        self.stdout.write(
-            f"📡 [{fi.id}] {progress:.0%} energy={energy} speed={speed}kts"
+        # tracking_service.create_or_update_tracking(payload=payload)
+
+        url = f"{base_url}/tracking"
+        response = requests.post(
+            url,
+            data=json.dumps(payload.model_dump(), cls=DjangoJSONEncoder),
+            headers={"Content-Type": "application/json"},
         )
+
+        if response.status_code == HTTPStatus.CREATED:
+            self.stdout.write(
+                f"📡 [{fi.id}] {progress:.0%} energy={energy} speed={speed}kts"
+            )
 
     # -------------------------------------------------------------------------
     # Flight termination
@@ -238,12 +261,20 @@ class Command(BaseCommand):
             updated_at=now,
         )
 
-        tracking_service.create_or_update_tracking(payload=payload)
+        # tracking_service.create_or_update_tracking(payload=payload)
 
-        fi.flight_status = FlightStatusEnum.TERMINATED.value
-        fi.save(update_fields=["flight_status"])
+        # fi.flight_status = FlightStatusEnum.TERMINATED.value
+        # fi.save(update_fields=["flight_status"])
 
-        self.stdout.write(self.style.SUCCESS(f"🛬 [{fi.id}] TERMINATED"))
+        url = f"{base_url}/tracking"
+        response = requests.post(
+            url,
+            data=json.dumps(payload.model_dump(), cls=DjangoJSONEncoder),
+            headers={"Content-Type": "application/json"},
+        )
+
+        if response.status_code == HTTPStatus.CREATED:
+            self.stdout.write(self.style.SUCCESS(f"🛬 [{fi.id}] TERMINATED"))
 
     # -------------------------------------------------------------------------
     # Flight path geometry
